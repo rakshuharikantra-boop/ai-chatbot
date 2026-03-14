@@ -54,7 +54,7 @@ if prompt:
     try:
         response = requests.post(
             webhook_url,
-            json={"message": prompt}
+            json={"chatInput": prompt}
         )
 
         data = response.json()
