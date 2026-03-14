@@ -7,10 +7,10 @@ st.set_page_config(page_title="AI Chatbot", page_icon="🤖", layout="wide")
 st.title("AI Chatbot 🤖")
 
 # --- n8n webhook URL (replace with your actual URL) ---
-webhook_url = "PASTE_YOUR_N8N_WEBHOOK_URL_HERE"
+webhook_url = "https://rakshitaharikantra.app.n8n.cloud/webhook/7917e788-e022-44bc-8628-ba73e4212949/chat"
 
 # --- Lock 1: Check webhook is configured ---
-if webhook_url == "PASTE_YOUR_N8N_WEBHOOK_URL_HERE":
+if webhook_url == "https://rakshitaharikantra.app.n8n.cloud/webhook/7917e788-e022-44bc-8628-ba73e4212949/chat":
     st.error("❌ Webhook URL is not configured. Please add your n8n webhook URL.")
     st.stop()
 
