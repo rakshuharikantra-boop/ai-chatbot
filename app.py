@@ -4,22 +4,38 @@ import json
 
 st.title("AI Chatbot 🤖")
 
-webhook_url = "https://rakshitaharikantra.app.n8n.cloud/webhook/7917e788-e022-44bc-8628-ba73e4212949/chat"
+webhook_url = "PASTE_YOUR_N8N_WEBHOOK_URL_HERE"
 
-# store chat history
+# --- Store chat history ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# show previous chat
+# --- Sidebar: New Chat button ---
+st.sidebar.title("Chat Controls")
+if st.sidebar.button("➕ New Chat"):
+    st.session_state.messages = []
+
+# --- File/photo upload ---
+uploaded_file = st.file_uploader(
+    "Upload image or file (optional)", 
+    type=["png", "jpg", "jpeg", "pdf", "txt"]
+)
+if uploaded_file:
+    st.success(f"File '{uploaded_file.name}' uploaded successfully!")
+
+# --- Show previous chat ---
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
+# --- Chat input ---
 user_input = st.chat_input("Ask something")
 
 if user_input:
+    # Show user message
     st.chat_message("user").write(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
 
+    # Send input to n8n webhook
     response = requests.post(
         webhook_url,
         json={"chatInput": user_input}
@@ -28,7 +44,7 @@ if user_input:
     text = response.text
     reply = ""
 
-    # extract words from n8n stream response
+    # Extract words from n8n stream response
     parts = text.split("}")
     for p in parts:
         if '"content":"' in p:
@@ -41,5 +57,6 @@ if user_input:
     if reply == "":
         reply = "Sorry, I couldn't understand the response."
 
+    # Show AI message
     st.chat_message("assistant").write(reply)
     st.session_state.messages.append({"role": "assistant", "content": reply})
