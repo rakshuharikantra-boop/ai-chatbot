@@ -4,15 +4,13 @@ from datetime import datetime
 
 # --- Page config ---
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖", layout="wide")
-
-# --- Title ---
 st.title("AI Chatbot 🤖")
 
 # --- n8n webhook ---
-webhook_url = "https://rakshitaharikantra.app.n8n.cloud/webhook/7917e788-e022-44bc-8628-ba73e4212949/chat"
+webhook_url = "PASTE_YOUR_N8N_WEBHOOK_URL_HERE"
 
 # --- Lock: Check webhook ---
-if webhook_url == "PASTE_YOUR_N8N_WEBHOOK_URL_HERE":
+if webhook_url == "https://rakshitaharikantra.app.n8n.cloud/webhook/7917e788-e022-44bc-8628-ba73e4212949/chat":
     st.error("Webhook URL is not configured.")
     st.stop()
 
@@ -22,20 +20,20 @@ if "username" not in st.session_state:
 if st.session_state.username == "":
     st.session_state.username = st.text_input("Enter your name to login")
     if st.session_state.username == "":
-        st.stop()  # wait for user to login
+        st.stop()
 
 # --- Chat session state ---
 if "chats" not in st.session_state:
-    st.session_state.chats = {}  # store chat history per user
-
+    st.session_state.chats = {}
 if st.session_state.username not in st.session_state.chats:
     st.session_state.chats[st.session_state.username] = []
 
-# --- Sidebar ---
+# --- Sidebar: New Chat button ---
 st.sidebar.title("Chat Controls")
-if st.sidebar.button("➕ New Chat"):
+new_chat_clicked = st.sidebar.button("➕ New Chat")
+if new_chat_clicked:
     st.session_state.chats[st.session_state.username] = []
-    st.experimental_rerun()
+    # We do NOT rerun immediately; Streamlit will automatically refresh the UI
 
 # --- File upload ---
 uploaded_file = st.file_uploader(
