@@ -1,73 +1,45 @@
 import streamlit as st
 import requests
-import uuid
+import json
 
-st.set_page_config(page_title="AI Chatbot", layout="wide")
+st.title("AI Chatbot 🤖")
 
-st.title("🤖 AI Chatbot")
+webhook_url = "PASTE_YOUR_N8N_WEBHOOK_URL_HERE"
 
-# ---------- Sidebar ----------
-st.sidebar.title("Chats")
+# store chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-if "chat_sessions" not in st.session_state:
-    st.session_state.chat_sessions = {}
+# show previous chat
+for msg in st.session_state.messages:
+    st.chat_message(msg["role"]).write(msg["content"])
 
-if "current_chat" not in st.session_state:
-    new_id = str(uuid.uuid4())
-    st.session_state.current_chat = new_id
-    st.session_state.chat_sessions[new_id] = []
+user_input = st.chat_input("Ask something")
 
-# New chat button
-if st.sidebar.button("➕ New Chat"):
-    new_id = str(uuid.uuid4())
-    st.session_state.current_chat = new_id
-    st.session_state.chat_sessions[new_id] = []
+if user_input:
+    st.chat_message("user").write(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-# Show previous chats
-for chat_id in st.session_state.chat_sessions:
-    if st.sidebar.button(f"Chat {chat_id[:6]}"):
-        st.session_state.current_chat = chat_id
+    response = requests.post(
+        webhook_url,
+        json={"chatInput": user_input}
+    )
 
-messages = st.session_state.chat_sessions[st.session_state.current_chat]
+    text = response.text
+    reply = ""
 
-# ---------- Chat display ----------
-for role, msg in messages:
-    with st.chat_message(role):
-        st.write(msg)
+    # extract words from n8n stream response
+    parts = text.split("}")
+    for p in parts:
+        if '"content":"' in p:
+            try:
+                content = p.split('"content":"')[1].split('"')[0]
+                reply += content
+            except:
+                pass
 
-# ---------- File Upload ----------
-uploaded_file = st.file_uploader("Upload file or image")
+    if reply == "":
+        reply = "Sorry, I couldn't understand the response."
 
-# ---------- Chat input ----------
-prompt = st.chat_input("Ask something...")
-
-if prompt:
-
-    messages.append(("user", prompt))
-
-    with st.chat_message("user"):
-        st.write(prompt)
-
-    # 🔗 PASTE YOUR N8N WEBHOOK HERE
-    webhook_url = "https://rakshitaharikantra.app.n8n.cloud/webhook/7917e788-e022-44bc-8628-ba73e4212949/chat"
-
-    try:
-        response = requests.post(
-            webhook_url,
-            json={"chatInput": prompt}
-        )
-
-        data = response.json()
-
-        if "output" in data:
-            bot_reply = data["output"]
-        else:
-            bot_reply = str(data)
-
-    except:
-        bot_reply = "Error connecting to AI workflow"
-
-    messages.append(("assistant", bot_reply))
-
-    with st.chat_message("assistant"):
-        st.write(bot_reply)
+    st.chat_message("assistant").write(reply)
+    st.session_state.messages.append({"role": "assistant", "content": reply})
